@@ -1,6 +1,6 @@
 {
   "name": "google-translate-api-without-node",
-  "version": "2.2.3",
+  "version": "2.2.4",
   "description": "A free and unlimited API for Google Translate, without Node dependencies so it can be webpacked into a browser app",
   "main": "index.js",
   "scripts": {
@@ -31,7 +31,7 @@
   },
   "homepage": "https://github.com/matheuss/google-translate-api#readme",
   "dependencies": {
-    "google-translate-token-without-node": "latest",
+    "google-translate-token-without-node": "1.0.1",
     "safe-eval": "^0.3.0"
   },
   "devDependencies": {
