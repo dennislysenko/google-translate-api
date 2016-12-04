@@ -1,6 +1,5 @@
 var querystring = require('querystring');
 
-var got = require('got');
 var safeEval = require('safe-eval');
 var token = require('google-translate-token');
 
@@ -49,66 +48,73 @@ function translate(text, opts) {
 
         return url + '?' + querystring.stringify(data);
     }).then(function (url) {
-        return got(url).then(function (res) {
-            var result = {
-                text: '',
-                from: {
-                    language: {
-                        didYouMean: false,
-                        iso: ''
-                    },
-                    text: {
-                        autoCorrected: false,
-                        value: '',
-                        didYouMean: false
+        return new Promise(function(resolve, reject) {
+            $.ajax({
+                url: url,
+                type: 'GET',
+                success: function(res) {
+                    var result = {
+                        text: '',
+                        from: {
+                            language: {
+                                didYouMean: false,
+                                iso: ''
+                            },
+                            text: {
+                                autoCorrected: false,
+                                value: '',
+                                didYouMean: false
+                            }
+                        },
+                        raw: ''
+                    };
+
+                    if (opts.raw) {
+                        result.raw = res.body;
                     }
+
+                    var body = safeEval(res.body);
+                    body[0].forEach(function (obj) {
+                        if (obj[0] !== undefined) {
+                            result.text += obj[0];
+                        }
+                    });
+
+                    if (body[2] === body[8][0][0]) {
+                        result.from.language.iso = body[2];
+                    } else {
+                        result.from.language.didYouMean = true;
+                        result.from.language.iso = body[8][0][0];
+                    }
+
+                    if (body[7] !== undefined && body[7][0] !== undefined) {
+                        var str = body[7][0];
+
+                        str = str.replace(/<b><i>/g, '[');
+                        str = str.replace(/<\/i><\/b>/g, ']');
+
+                        result.from.text.value = str;
+
+                        if (body[7][5] === true) {
+                            result.from.text.autoCorrected = true;
+                        } else {
+                            result.from.text.didYouMean = true;
+                        }
+                    }
+
+                    resolve(result);
                 },
-                raw: ''
-            };
-
-            if (opts.raw) {
-                result.raw = res.body;
-            }
-
-            var body = safeEval(res.body);
-            body[0].forEach(function (obj) {
-                if (obj[0] !== undefined) {
-                    result.text += obj[0];
+                error: function(jqXHR, textStatus, err) {
+                    var e;
+                    e = new Error();
+                    if (err.statusCode !== undefined && err.statusCode !== 200) {
+                        e.code = 'BAD_REQUEST';
+                    } else {
+                        e.code = 'BAD_NETWORK';
+                    }
+                    reject(e);
                 }
-            });
-
-            if (body[2] === body[8][0][0]) {
-                result.from.language.iso = body[2];
-            } else {
-                result.from.language.didYouMean = true;
-                result.from.language.iso = body[8][0][0];
-            }
-
-            if (body[7] !== undefined && body[7][0] !== undefined) {
-                var str = body[7][0];
-
-                str = str.replace(/<b><i>/g, '[');
-                str = str.replace(/<\/i><\/b>/g, ']');
-
-                result.from.text.value = str;
-
-                if (body[7][5] === true) {
-                    result.from.text.autoCorrected = true;
-                } else {
-                    result.from.text.didYouMean = true;
-                }
-            }
-
-            return result;
-        }).catch(function (err) {
-            var e;
-            e = new Error();
-            if (err.statusCode !== undefined && err.statusCode !== 200) {
-                e.code = 'BAD_REQUEST';
-            } else {
-                e.code = 'BAD_NETWORK';
-            }
-            throw e;
+            })
         });
     });
 }
