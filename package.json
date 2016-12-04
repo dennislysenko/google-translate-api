@@ -1,6 +1,6 @@
 {
   "name": "google-translate-api-without-node",
-  "version": "2.2.2",
+  "version": "2.2.3",
   "description": "A free and unlimited API for Google Translate, without Node dependencies so it can be webpacked into a browser app",
   "main": "index.js",
   "scripts": {
