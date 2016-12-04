@@ -53,6 +53,7 @@ function translate(text, opts) {
             $.ajax({
                 url: url,
                 type: 'GET',
+                dataType: 'text',
                 success: function(res) {
                     var result = {
                         text: '',
@@ -71,10 +72,10 @@ function translate(text, opts) {
                     };
 
                     if (opts.raw) {
-                        result.raw = res.body;
+                        result.raw = res;
                     }
 
-                    var body = safeEval(res.body);
+                    var body = safeEval(res);
                     body[0].forEach(function (obj) {
                         if (obj[0] !== undefined) {
                             result.text += obj[0];
